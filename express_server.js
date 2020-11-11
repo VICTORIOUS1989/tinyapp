@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 var cookieParser = require('cookie-parser')
+const {  authenticateUser } = require('./helpers')
 
 const app = express();
 app.use(bodyParser.urlencoded({extended: true}));
@@ -24,6 +25,11 @@ const users = {
     id: "user2RandomID", 
     email: "user2@example.com", 
     password: "dishwasher-funk"
+  },
+  "test": {
+    id: "test", 
+    email: "test@test.com", 
+    password: "test"
   }
 }
 
@@ -97,17 +103,23 @@ app.post("/urls/:shortURL" ,(req, res) => {
 
   app.get("/login", (req, res) => {
     const Userid = req.cookies['user_id']; 
-
     const templateVars = { user: users[Userid]};
-
     res.render("login", templateVars);
     });
   
 app.post("/login" ,(req, res) => {
+  //const { email, password } = req.body
+  const email = req.body.email;
+  const password = req.body.password;
 
-  const username = req.body.username;
-  res.cookie ('username', username);
-  res.redirect('/urls');
+  const userId= authenticateUser(users, email, password);
+  if (userId) { 
+
+      res.cookie ('user_id', userId);
+      res.redirect('/urls');
+  }
+ else   res.sendStatus(403); 
+
   }); 
 
 app.post("/logout" ,(req, res) => {
@@ -143,6 +155,7 @@ app.listen(PORT, () => {
 function generateRandomString() {
   return Math.random().toString(36).substring(7);
 }
+
 
 const checkEmail = (email)=> {
   for ( let user in users) {
