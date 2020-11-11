@@ -94,6 +94,15 @@ app.post("/urls/:shortURL" ,(req, res) => {
  
   }); 
 
+
+  app.get("/login", (req, res) => {
+    const Userid = req.cookies['user_id']; 
+
+    const templateVars = { user: users[Userid]};
+
+    res.render("login", templateVars);
+    });
+  
 app.post("/login" ,(req, res) => {
 
   const username = req.body.username;

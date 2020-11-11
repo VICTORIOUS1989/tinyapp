@@ -15,15 +15,15 @@
 
       <% if(user){ %>
         <form method="POST" action="/logout">
-          <label >Logged In as: <%= user.email %>!</label>
+          <!--
+             <label >Logged In as: <%= user.email %>!</label>
+             -->
           <button type="submit" class="btn btn-outline-dark">Logout</button>
       </form>
 
       <% } else{ %>  
-        <form method="POST" action="/login">
-        <input type="text" name="username"  placeholder="Username">
-        <button type="submit" class="btn btn-outline-dark">Login</button>    
-      </form>
+        <a class="btn btn-outline-dark" href="/login">Login</button>
+        <a class="btn btn-outline-dark" href="/register">Register</a>
         <% } %>
   
     </div>
