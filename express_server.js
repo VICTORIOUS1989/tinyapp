@@ -15,8 +15,12 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 }; */
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "test" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "test" },
+  kjG89r: { longURL: "https://www.lighthouse.ca", userID: "foufa" },
+  fff89r: { longURL: "https://www.fayza.ca", userID: "fayza" }
+
+
   };
 
 const users = { 
@@ -39,8 +43,14 @@ const users = {
 
 app.get("/urls", (req, res) => {
   const Userid = req.cookies['user_id']; 
-  const templateVars = { urls: urlDatabase , user: users[Userid]};
-  res.render("urls_index", templateVars);
+  if (Userid) {
+   const listUrls = urlsForUser (Userid);
+   //console.log(listUrls);
+  const templateVars = { urls: listUrls , user: users[Userid]};
+  return res.render("urls_index", templateVars);
+  }
+  res.redirect("/login");
+ 
 });
 
 app.get("/urls/new", (req, res) => {
@@ -65,7 +75,7 @@ app.post("/urls", (req, res) => {
   longURL = req.body.longURL;
   const userID = req.cookies['user_id']; 
   urlDatabase[shortURL]= { longURL,userID };
-  console.log(urlDatabase);  // Log the POST request body to the console
+  //console.log(urlDatabase);  // Log the POST request body to the console
   res.redirect(`/urls/${shortURL}`);         
 });
 
@@ -169,4 +179,15 @@ const checkEmail = (email)=> {
     return true
   }
   return false
+};
+
+
+const urlsForUser  = (userId)=> {
+  let URLS ={};
+for (KeyShorURL in urlDatabase) {
+    if (urlDatabase[KeyShorURL].userID === userId) {
+        URLS[KeyShorURL]= urlDatabase[KeyShorURL];
+    }
+}
+return URLS;
 };
