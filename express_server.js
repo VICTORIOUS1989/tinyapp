@@ -111,11 +111,17 @@ app.post('/register', (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
+if ( email === "" || password === "" || checkEmail(email)=== true) {
+  res.sendStatus(400); 
+}
+else {
   const user ={ id ,email,password };
- users[id]= user;
- console.log(users);
+  users[id]= user;
+  console.log(users);
   res.cookie ('user_id', id);
   res.redirect('/urls');
+}
+
   }); 
 
 app.listen(PORT, () => {
@@ -128,3 +134,11 @@ app.listen(PORT, () => {
 function generateRandomString() {
   return Math.random().toString(36).substring(7);
 }
+
+const checkEmail = (email)=> {
+  for ( let user in users) {
+    if (users[user].email === email)
+    return true
+  }
+  return false
+};
