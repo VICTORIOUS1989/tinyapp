@@ -36,16 +36,19 @@ const urlDatabase = {
 const users = { 
   "userRandomID": {
     id: "userRandomID", 
+    name : "name1" ,
     email: "user@example.com", 
     password: bcrypt.hashSync("purple-monkey-dinosaur", 10)
   },
  "user2RandomID": {
     id: "user2RandomID", 
+    name : "name2" ,
     email: "user2@example.com", 
     password:  bcrypt.hashSync("dishwasher-funk", 10)
   },
   "test": {
     id: "test", 
+    name : "name3" ,
     email: "test@test.com", 
     password: bcrypt.hashSync("test", 10)
   }
@@ -81,10 +84,10 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.post("/urls", (req, res) => {
 
-  shortURL = generateRandomString();
-  longURL = req.body.longURL;
+ // shortURL = generateRandomString();
+  const longURL = req.body.longURL;
   const userID = req.session.user_id; 
-  urlDatabase[shortURL]= { longURL,userID };
+  const shortURL= createNewUrl(longURL,userID);
   //console.log(urlDatabase);  // Log the POST request body to the console
   res.redirect(`/urls/${shortURL}`);         
 });
@@ -125,8 +128,11 @@ app.post("/urls/:shortURL/delete" ,(req, res) => {
 
 app.post("/urls/:shortURL" ,(req, res) => {
   const Userid = req.session.user_id; 
+  const shortURL =req.params.shortURL;
+  const longURL = req.body.longURL;
+
   if ( Userid && Userid === urlDatabase[req.params.shortURL].userID) {
-    urlDatabase[req.params.shortURL].longURL= req.body.longURL;
+    updateUrl(shortURL,longURL);
     res.redirect("/urls");
   }
   else return res.sendStatus(403); 
@@ -165,20 +171,18 @@ app.post("/logout" ,(req, res) => {
 
 app.post('/register', (req, res) => {
  
-  const id = generateRandomString();
+  const name = req.body.name;
   const email = req.body.email;
   const password = req.body.password;
   const hashedPassword = bcrypt.hashSync(password, 10);
-
-if ( email === "" || password === "" || checkEmail(email)=== true) {
-  res.sendStatus(400); 
+  const UserId = addNewUser( name, email, hashedPassword );
+if (UserId ) {
+  req.session.user_id = UserId;
+  res.redirect('/urls');
 }
 else {
-  const user ={ id ,email,password : hashedPassword };
-  users[id]= user;
-  console.log(users);
-  req.session.user_id = id;
-  res.redirect('/urls');
+  res.sendStatus(400); 
+
 }
 
   }); 
@@ -226,3 +230,29 @@ const authenticateUser = (email, password) => {
   return false
 }
 
+
+const addNewUser = (name , email , hashedPassword) => {
+
+if ( email === "" || hashedPassword === "" || checkEmail(email)=== true) {
+  return false;
+}
+else {
+  const userId= generateRandomString ();
+  const NewUser ={ id :userId ,name ,email,password : hashedPassword };
+  users[userId]= NewUser;
+ return userId;
+}
+  }
+
+
+  const createNewUrl = (longURL, userID) => {
+  shortURL = generateRandomString();
+  urlDatabase[shortURL]= { longURL,userID };
+  return shortURL;
+};
+
+const updateUrl = (shortURL,longURL) => {
+  urlDatabase[shortURL].longURL= longURL;
+
+  return true;
+};

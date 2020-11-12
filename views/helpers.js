@@ -1,6 +1,12 @@
 
 
-const checkEmail = (users,email)=> {
+
+function generateRandomString() {
+  return Math.random().toString(36).substring(7);
+}
+
+
+const checkEmail = (email)=> {
   for ( let user in users) {
     if (users[user].email === email)
     return true
@@ -9,46 +15,58 @@ const checkEmail = (users,email)=> {
 };
 
 
+const urlsForUser  = (userId)=> {
+  let URLS ={};
+for (KeyShorURL in urlDatabase) {
+    if (urlDatabase[KeyShorURL].userID === userId) {
+        URLS[KeyShorURL]= urlDatabase[KeyShorURL];
+    }
+}
+return URLS;
+};
 
-const authenticateUser = (users, email, password) => {
 
-  //const hashedPassword = bcrypt.hashSync(password, 10);
-  //bcrypt.compareSync(password, users[userId].password); // returns true
- // let password = bcrypt.compareSync(req.body.password, users[userID]["password"]);
- //console.log(users[userId].password);
+
+const authenticateUser = (email, password) => {
 
   for ( let userId in users) {      
-      if (users[userId].email === email && bcrypt.compareSync(password,users[userId].password) ) {
-
-     // if (users[userId].password === password) {
-      
-        return userId;
-      
+      if (users[userId].email === email && bcrypt.compareSync(password,users[userId].password) ) {      
+        return userId;      
     }
   }
   return false
 }
 
 
+const addNewUser = (name , email , hashedPassword) => {
 
-/*
-const authenticateUser = (users, email, password) => {
-  for ( let user in users) {
-    if (users[user].email === email){
-      if (users[user].password === password) {
-        return user;
-      }
-    }
-  }
-  return false
+if ( email === "" || hashedPassword === "" || checkEmail(email)=== true) {
+  return false;
 }
+else {
+  const userId= generateRandomString ();
+  const NewUser ={ id :userId ,name ,email,password : hashedPassword };
+  users[userId]= NewUser;
+ return userId;
+}
+  }
 
-*/
+
+  const createNewUrl = (longURL, userID) => {
+  shortURL = generateRandomString();
+  urlDatabase[shortURL]= { longURL,userID };
+  return shortURL;
+};
+
+const updateUrl = (shortURL,longURL) => {
+  urlDatabase[shortURL].longURL= longURL;
+
+  return true;
+};
 
 
 
 
 
 
-
-module.exports = { authenticateUser, checkEmail }
+module.exports = { generateRandomString, urlsForUser,authenticateUser, checkEmail,addNewUser ,createNewUrl,updateUrl}
