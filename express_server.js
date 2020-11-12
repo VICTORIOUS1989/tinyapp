@@ -1,7 +1,9 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-var cookieParser = require('cookie-parser')
-const {  authenticateUser } = require('./helpers')
+var cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
+
+//const {  authenticateUser } = require('./helpers')
 
 const app = express();
 app.use(bodyParser.urlencoded({extended: true}));
@@ -27,17 +29,17 @@ const users = {
   "userRandomID": {
     id: "userRandomID", 
     email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
+    password: bcrypt.hashSync("purple-monkey-dinosaur", 10)
   },
  "user2RandomID": {
     id: "user2RandomID", 
     email: "user2@example.com", 
-    password: "dishwasher-funk"
+    password:  bcrypt.hashSync("dishwasher-funk", 10)
   },
   "test": {
     id: "test", 
     email: "test@test.com", 
-    password: "test"
+    password: bcrypt.hashSync("test", 10)
   }
 }
 
@@ -132,11 +134,13 @@ app.post("/urls/:shortURL" ,(req, res) => {
     });
   
 app.post("/login" ,(req, res) => {
+
   //const { email, password } = req.body
   const email = req.body.email;
   const password = req.body.password;
 
-  const userId= authenticateUser(users, email, password);
+
+   userId= authenticateUser(email, password);
   if (userId) { 
 
       res.cookie ('user_id', userId);
@@ -156,11 +160,13 @@ app.post('/register', (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
+
 if ( email === "" || password === "" || checkEmail(email)=== true) {
   res.sendStatus(400); 
 }
 else {
-  const user ={ id ,email,password };
+  const user ={ id ,email,password : hashedPassword };
   users[id]= user;
   console.log(users);
   res.cookie ('user_id', id);
@@ -199,3 +205,16 @@ for (KeyShorURL in urlDatabase) {
 }
 return URLS;
 };
+
+
+
+const authenticateUser = (email, password) => {
+
+  for ( let userId in users) {      
+      if (users[userId].email === email && bcrypt.compareSync(password,users[userId].password) ) {      
+        return userId;      
+    }
+  }
+  return false
+}
+
