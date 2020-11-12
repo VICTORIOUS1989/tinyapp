@@ -1,14 +1,12 @@
 const express = require("express");
 var cookieSession = require('cookie-session')
 const bodyParser = require("body-parser");
-//var cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 
 const {  generateRandomString, urlsForUser,authenticateUser, checkEmail,addNewUser ,createNewUrl,updateUrl } = require('./helpers');
 
 const app = express();
 app.use(bodyParser.urlencoded({extended: true}));
-//app.use(cookieParser())
 
 app.use(
   cookieSession({
@@ -19,20 +17,18 @@ app.use(
 
 app.set("view engine", "ejs");
 const PORT = 8080; // default port 8080
-/*
-const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-}; */
+
+
+//--------------USER DATABASE--------------//
+
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "test" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "test" },
   kjG89r: { longURL: "https://www.lighthouse.ca", userID: "foufa" },
   ffffff: { longURL: "https://www.fayza.ca", userID: "fayza" }
-
-
   };
 
+//---------- URL DATABASE---------------//
 const users = { 
   "userRandomID": {
     id: "userRandomID", 
@@ -58,7 +54,6 @@ app.get("/urls", (req, res) => {
   const Userid = req.session.user_id; 
   if (Userid) {
    const listUrls = urlsForUser (urlDatabase,Userid);
-   //console.log(listUrls);
   const templateVars = { urls: listUrls , user: users[Userid]};
   return res.render("urls_index", templateVars);
   }
@@ -77,18 +72,16 @@ res.redirect("/login");
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  //console.log(req.params.shortURL);
   const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 
+
 app.post("/urls", (req, res) => {
 
- // shortURL = generateRandomString();
   const longURL = req.body.longURL;
   const userID = req.session.user_id; 
   const shortURL= createNewUrl(urlDatabase,longURL,userID);
-  //console.log(urlDatabase);  // Log the POST request body to the console
   res.redirect(`/urls/${shortURL}`);         
 });
 
@@ -100,8 +93,7 @@ app.get("/urls/:shortURL", (req, res) => {
     longURL: urlDatabase[req.params.shortURL].longURL, 
     user: users[Userid]
   };
-  //console.log(templateVars);
-  //console.log(req.params);
+
   res.render("urls_show", templateVars);
   });
 
@@ -148,19 +140,24 @@ app.post("/urls/:shortURL" ,(req, res) => {
     });
   
 app.post("/login" ,(req, res) => {
-
-  //const { email, password } = req.body
   const email = req.body.email;
   const password = req.body.password;
 
 
-   userId= authenticateUser(users ,email, password);
+   const userId= authenticateUser(users ,email, password);
   if (userId) { 
 
       req.session.user_id = userId;
       res.redirect('/urls');
   }
- else   res.sendStatus(403); 
+ else   {
+  let templateErrorVars = {
+    error: 503,
+    message: "Access Denied. Please Login or Register to view urls",
+    user : authenticateUser(users ,email, password)
+  }; 
+  res.status(503).render("error_page", templateErrorVars);
+ } 
 
   }); 
 
@@ -181,7 +178,12 @@ if (UserId ) {
   res.redirect('/urls');
 }
 else {
-  res.sendStatus(400); 
+  let templateErrorVars = {
+    error: 503,
+    message: "Fill out the fields or the User exists ",
+    user: users[req.session.userID]
+  }; 
+  res.status(503).render("error_page", templateErrorVars);
 
 }
 
