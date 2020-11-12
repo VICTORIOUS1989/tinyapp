@@ -18,7 +18,7 @@ const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "test" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "test" },
   kjG89r: { longURL: "https://www.lighthouse.ca", userID: "foufa" },
-  fff89r: { longURL: "https://www.fayza.ca", userID: "fayza" }
+  ffffff: { longURL: "https://www.fayza.ca", userID: "fayza" }
 
 
   };
@@ -104,15 +104,23 @@ app.get("/urls/:shortURL", (req, res) => {
 
 
 app.post("/urls/:shortURL/delete" ,(req, res) => {
- 
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls");
- 
+  const Userid = req.cookies['user_id']; 
+  if ( Userid && Userid === urlDatabase[req.params.shortURL].userID) {
+    delete urlDatabase[req.params.shortURL];
+    res.redirect("/urls");
+  }
+  else return res.sendStatus(403); 
+  
   }); 
 
 app.post("/urls/:shortURL" ,(req, res) => {
-  urlDatabase[req.params.shortURL].longURL= req.body.longURL;
-  res.redirect("/urls");
+  const Userid = req.cookies['user_id']; 
+  if ( Userid && Userid === urlDatabase[req.params.shortURL].userID) {
+    urlDatabase[req.params.shortURL].longURL= req.body.longURL;
+    res.redirect("/urls");
+  }
+  else return res.sendStatus(403); 
+
  
   }); 
 
