@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 //var cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 
-//const {  authenticateUser } = require('./helpers')
+const {  generateRandomString, urlsForUser,authenticateUser, checkEmail,addNewUser ,createNewUrl,updateUrl } = require('./helpers');
 
 const app = express();
 app.use(bodyParser.urlencoded({extended: true}));
@@ -57,7 +57,7 @@ const users = {
 app.get("/urls", (req, res) => {
   const Userid = req.session.user_id; 
   if (Userid) {
-   const listUrls = urlsForUser (Userid);
+   const listUrls = urlsForUser (urlDatabase,Userid);
    //console.log(listUrls);
   const templateVars = { urls: listUrls , user: users[Userid]};
   return res.render("urls_index", templateVars);
@@ -87,7 +87,7 @@ app.post("/urls", (req, res) => {
  // shortURL = generateRandomString();
   const longURL = req.body.longURL;
   const userID = req.session.user_id; 
-  const shortURL= createNewUrl(longURL,userID);
+  const shortURL= createNewUrl(urlDatabase,longURL,userID);
   //console.log(urlDatabase);  // Log the POST request body to the console
   res.redirect(`/urls/${shortURL}`);         
 });
@@ -132,7 +132,7 @@ app.post("/urls/:shortURL" ,(req, res) => {
   const longURL = req.body.longURL;
 
   if ( Userid && Userid === urlDatabase[req.params.shortURL].userID) {
-    updateUrl(shortURL,longURL);
+    updateUrl(urlDatabase,shortURL,longURL);
     res.redirect("/urls");
   }
   else return res.sendStatus(403); 
@@ -154,7 +154,7 @@ app.post("/login" ,(req, res) => {
   const password = req.body.password;
 
 
-   userId= authenticateUser(email, password);
+   userId= authenticateUser(users ,email, password);
   if (userId) { 
 
       req.session.user_id = userId;
@@ -175,7 +175,7 @@ app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const hashedPassword = bcrypt.hashSync(password, 10);
-  const UserId = addNewUser( name, email, hashedPassword );
+  const UserId = addNewUser( users ,name, email, hashedPassword );
 if (UserId ) {
   req.session.user_id = UserId;
   res.redirect('/urls');
@@ -192,67 +192,4 @@ app.listen(PORT, () => {
 });
 
 
-
-
-function generateRandomString() {
-  return Math.random().toString(36).substring(7);
-}
-
-
-const checkEmail = (email)=> {
-  for ( let user in users) {
-    if (users[user].email === email)
-    return true
-  }
-  return false
-};
-
-
-const urlsForUser  = (userId)=> {
-  let URLS ={};
-for (KeyShorURL in urlDatabase) {
-    if (urlDatabase[KeyShorURL].userID === userId) {
-        URLS[KeyShorURL]= urlDatabase[KeyShorURL];
-    }
-}
-return URLS;
-};
-
-
-
-const authenticateUser = (email, password) => {
-
-  for ( let userId in users) {      
-      if (users[userId].email === email && bcrypt.compareSync(password,users[userId].password) ) {      
-        return userId;      
-    }
-  }
-  return false
-}
-
-
-const addNewUser = (name , email , hashedPassword) => {
-
-if ( email === "" || hashedPassword === "" || checkEmail(email)=== true) {
-  return false;
-}
-else {
-  const userId= generateRandomString ();
-  const NewUser ={ id :userId ,name ,email,password : hashedPassword };
-  users[userId]= NewUser;
- return userId;
-}
-  }
-
-
-  const createNewUrl = (longURL, userID) => {
-  shortURL = generateRandomString();
-  urlDatabase[shortURL]= { longURL,userID };
-  return shortURL;
-};
-
-const updateUrl = (shortURL,longURL) => {
-  urlDatabase[shortURL].longURL= longURL;
-
-  return true;
-};
+//generateRandomString, urlsForUser,authenticateUser, checkEmail,addNewUser ,createNewUrl,updateUrl

@@ -15,7 +15,7 @@ const checkEmail = (email)=> {
 };
 
 
-const urlsForUser  = (userId)=> {
+const urlsForUser  = (urlDatabase,userId)=> {
   let URLS ={};
 for (KeyShorURL in urlDatabase) {
     if (urlDatabase[KeyShorURL].userID === userId) {
@@ -27,7 +27,7 @@ return URLS;
 
 
 
-const authenticateUser = (email, password) => {
+const authenticateUser = (users, email, password) => {
 
   for ( let userId in users) {      
       if (users[userId].email === email && bcrypt.compareSync(password,users[userId].password) ) {      
@@ -38,7 +38,7 @@ const authenticateUser = (email, password) => {
 }
 
 
-const addNewUser = (name , email , hashedPassword) => {
+const addNewUser = (users ,name , email , hashedPassword) => {
 
 if ( email === "" || hashedPassword === "" || checkEmail(email)=== true) {
   return false;
@@ -52,13 +52,13 @@ else {
   }
 
 
-  const createNewUrl = (longURL, userID) => {
+  const createNewUrl = (urlDatabase ,longURL, userID) => {
   shortURL = generateRandomString();
   urlDatabase[shortURL]= { longURL,userID };
   return shortURL;
 };
 
-const updateUrl = (shortURL,longURL) => {
+const updateUrl = (urlDatabase,shortURL,longURL) => {
   urlDatabase[shortURL].longURL= longURL;
 
   return true;
